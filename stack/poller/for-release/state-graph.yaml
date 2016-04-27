@@ -1,10 +1,7 @@
 ---
 nodes:
 - name: start
-- name: go
-  continue: .9
-- name: finish
+- name: echo
 
 edges:
-- start: go
-- go: go
+- start: echo
