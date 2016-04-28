@@ -1,10 +1,19 @@
 #include <libcgc.h>
 #include "libc.h"
 
-#define GETS_BUF_LEN 16
-#define PRINT_BUF_LEN 16
-#define CANARY "vito"
-#define ECHO_BUF_LEN 24
+/* #define GETS_BUF_LEN 16 */
+/* #define PRINT_BUF_LEN 16 */
+/* #define CANARY "vito" */
+/* #define ECHO_BUF_LEN 24 */
+
+void *memcpy(void *dest, const void *src, size_t n)
+{
+    char *dp = dest;
+    const char *sp = src;
+    while (n--)
+        *dp++ = *sp++;
+    return dest;
+}
 
 int gets(char* dest) {
   char buf[GETS_BUF_LEN];
