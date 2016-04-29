@@ -5,9 +5,19 @@ require 'fileutils'
 require 'nokogiri'
 require 'base64'
 require 'digest'
+require 'csv'
+require 'set'
+
+$level = 'easy'
+
+$sausages = CSV.read('../sausages.csv').flatten
+$sauces = CSV.read('../sauces.csv').flatten
+$breads = CSV.read('../breads.csv').flatten
+
+$used_names = Set.new
 
 iterations = (ENV['ITERATIONS'] || 1001).to_i
-seed = (ENV['SEED'] || 'new york'.unpack('Q').first).to_i
+seed = (ENV['SEED'] || "#{$level} thousand cuts".unpack('Q').first).to_i
 
 prng = Random.new seed
 
@@ -26,6 +36,24 @@ buildall.puts '#!/bin/sh'
 chkall = File.open("tmp/gen/chkall.sh", 'w')
 chkall.puts '#!/bin/sh'
 
+def pick_name(prng)
+  choices = 3.times.map{ prng.rand(69) }
+  while $used_names.include? choices
+    choices = 3.times.map{ prng.rand(69) }
+  end
+
+  $used_names.add choices
+
+  [
+    $level,
+    $sausages[choices[0]],
+    'with',
+    $sauces[choices[1]],
+    'on',
+    $breads[choices[2]]
+  ].join('-')
+end
+
 names = iterations.times.map do |n|
   if 0 == (n % 10)
     data = "\r#{n}\t/ #{iterations}"
@@ -33,10 +61,10 @@ names = iterations.times.map do |n|
     buildall.puts "echo -n #{data.inspect}"
   end
 
-  gets_buf_len = prng.rand(0x10..0x20)
-  print_buf_len = prng.rand(0x10..0x20)
-  echo_buf_len = prng.rand(0x10..0x20)
-  canary_len = prng.rand(4...16)
+  gets_buf_len = prng.rand(0x10..0x40)
+  print_buf_len = prng.rand(0x10..0x40)
+  echo_buf_len = prng.rand(0x10..0x80)
+  canary_len = prng.rand(0x04...0x10)
   canary = prng.bytes(canary_len)
   while canary.include? "\0"
     canary = prng.bytes(canary_len)
@@ -54,7 +82,7 @@ GENFLAGS =
 -DCANARY=#{Shellwords.escape canary.inspect}
 EOF
 
-  name = Digest::SHA256.hexdigest mk_buf
+  name = pick_name(prng)
   mk_name = "tmp/gen/mk/#{name}"
   pov_name = "tmp/gen/pov/#{name}.xml"
   raw_name = "tmp/gen/raw/#{name}"
