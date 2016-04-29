@@ -61,9 +61,10 @@ names = iterations.times.map do |n|
     buildall.puts "echo -n #{data.inspect}"
   end
 
-  gets_buf_len = prng.rand(0x10..0x40)
-  print_buf_len = prng.rand(0x10..0x40)
+  gets_buf_len = prng.rand(0x10..0x30)
+  print_buf_len = prng.rand(0x10..0x30)
   echo_buf_len = prng.rand(0x10..0x80)
+  interstitial_seed = prng.rand(2**64)
   canary_len = prng.rand(0x04...0x10)
   canary = prng.bytes(canary_len)
   while canary.include? "\0"
@@ -104,6 +105,7 @@ EOF
   end
 
   ENV['MAKEFILES'] = mk_name
+  buildall.puts "INTERSTITIAL_SEED=#{interstitial_seed} python interstitial.py"
   buildall.puts "MAKEFILES=#{mk_name} make clean release > /dev/null"
 
   buildall.puts "cp #{cb_orig_name} #{cb_name}"
@@ -111,6 +113,7 @@ EOF
 
   chk_buf = <<-EOF
 #!/bin/sh
+echo -n #{pov_name} " "
 cb-test --timeout 2 --xml #{pov_name} --directory tmp/gen/cb --failure_ok --should_core --cb #{name} | tail -1
 EOF
 

@@ -6,6 +6,8 @@
 /* #define CANARY "vito" */
 /* #define ECHO_BUF_LEN 24 */
 
+###
+
 void *memcpy(void *dest, const void *src, size_t n)
 {
     char *dp = dest;
@@ -14,6 +16,8 @@ void *memcpy(void *dest, const void *src, size_t n)
         *dp++ = *sp++;
     return dest;
 }
+
+###
 
 int gets(char* dest) {
   char buf[GETS_BUF_LEN];
@@ -41,6 +45,8 @@ int gets(char* dest) {
   }
 }
 
+###
+
 void print(char* src) {
   int src_len = 0;
 
@@ -67,6 +73,8 @@ void print(char* src) {
   }
 }
 
+###
+
 int streq(char* left, char* right, int count) {
   for (int cursor = 0; cursor < count; cursor++) {
     char l = left[cursor];
@@ -77,6 +85,8 @@ int streq(char* left, char* right, int count) {
 
   return 1;
 }
+
+###
 
 void echo() {
   char canary[] = CANARY;
@@ -91,7 +101,11 @@ void echo() {
   }
 }
 
+###
+
 int main() {
   echo();
   return 0;
 }
+
+###
