@@ -5,5 +5,6 @@ VULN_COUNT = 1
 POLLS_RELEASE_COUNT = 5
 
 NO_CB_EXTENDED_APP = 1
+NO_CB_DPKG = 1
 
 include cgc-cb.mk
