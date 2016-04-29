@@ -1,0 +1,7 @@
+---
+nodes:
+- name: start
+- name: echo
+
+edges:
+- start: echo
