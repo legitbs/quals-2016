@@ -3,15 +3,22 @@ from collections import deque
 from os import environ
 
 funcwords = ["str", "eq", "cpy", "mem", "main", "echo", "cat", "cmp", "get",
-             "print", "val", "fmt", "stk", "alloc", "free", "mk", "tx", "rx"]
+             "print", "val", "fmt", "stk", "alloc", "free", "mk", "tx", "rx",
+             "xchg", "swap", "gs", "msr", "base", "acid", "caller", "binding",
+             "stack", "box", "unbox", "factory", "permute", "shuffle", "rnd"]
+
+realfuncnames = ["gets", "print", "streq", "echo"]
 
 argtypes = ["int", "char", "long"]
 
 iops = ["*", "-", "+"]
 
+def makefuncname():
+    return ''.join(random.sample(funcwords, 4))
+
 def makefun():
-    funcname = ''.join(random.sample(funcwords, 4))
-    args = map(lambda(name):
+    funcname = makefuncname()
+    args = map(lambda name:
                random.choice(argtypes) +
                ("*" * random.randint(0, 3)) +
                " " +
@@ -32,10 +39,21 @@ def makefun():
 
 random.seed(environ['INTERSTITIAL_SEED'])
 
+funcsubs = map(lambda realfunc:
+               [realfunc, makefuncname()]
+            , realfuncnames)
+
 with open("./src/service.c.tpl") as f:
     with open("./src/service.c", "w") as g:
-        for line in f:
-            if "###" == line.strip():
-                g.write(makefun())
-            else:
-                g.write(line)
+        src = f.read()
+        subbed = reduce(lambda accum, pair:
+                        accum.replace(pair[0], pair[1])
+                        , funcsubs, src)
+        segments = subbed.split("###")
+        g.write(segments[0])
+        bits = random.sample(segments[1:], len(segments) - 1)
+
+        for fun in bits:
+            g.write(makefun())
+            g.write(fun)
+        g.write(makefun())

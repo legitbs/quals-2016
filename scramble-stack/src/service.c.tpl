@@ -6,6 +6,13 @@
 /* #define CANARY "vito" */
 /* #define ECHO_BUF_LEN 24 */
 
+void *memcpy(void *dest, const void *src, size_t n);
+int gets(char* dest);
+void print(char* src);
+int streq(char* left, char* right, int count);
+void echo();
+int main();
+
 ###
 
 void *memcpy(void *dest, const void *src, size_t n)

@@ -8,7 +8,7 @@ require 'digest'
 require 'csv'
 require 'set'
 
-$level = 'medium'
+$level = 'hard'
 
 $sausages = CSV.read('../sausages.csv').flatten
 $sauces = CSV.read('../sauces.csv').flatten
