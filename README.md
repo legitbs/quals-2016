@@ -18,7 +18,7 @@ segfaults the configured number of binaries, they get the flag.
 ## Generating Binaries
 
 Each level is generated independently, in a few steps. It requires both Ruby
-(tested with 2.3), and a working CGC compliation stack (tested with the `cb`
+(tested with 2.3), and a working CGC compilation stack (tested with the `cb`
 Vagrant image provided by DARPA).
 
 The first step is `generator.rb`, which takes two environment variables.
