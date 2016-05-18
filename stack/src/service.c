@@ -53,7 +53,7 @@ void print(char* src) {
 
   while(1) {
     int remaining = src_len - total_sent;
-    int to_send = (PRINT_BUF_LEN > remaining) ? PRINT_BUF_LEN : remaining;
+    int to_send = (PRINT_BUF_LEN < remaining) ? PRINT_BUF_LEN : remaining;
 
     size_t did_send;
 
@@ -83,12 +83,13 @@ void echo() {
   char buf[ECHO_BUF_LEN];
 
   gets(buf);
-  print(buf);
 
   if (!streq(canary, CANARY, 4)) {
     print("hacking detected, see ya");
     _terminate(-1);
   }
+
+  print("canary ok");
 }
 
 int main() {

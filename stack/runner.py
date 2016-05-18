@@ -1,3 +1,4 @@
+#!/bin/env python -u
 import random
 from os import environ, listdir, path
 from sys import exit
@@ -33,6 +34,9 @@ for c in picked:
                  stdin=PIPE, stdout=PIPE, stderr=PIPE)
     (out, err) = proc.communicate(crasher)
     signal.alarm(0)
+    if out != "canary ok":
+        print "didn't pass canary, sorry"
+        exit(-1)
 
     if proc.returncode != -signal.SIGSEGV:
         print "didn't segfault, sorry"
