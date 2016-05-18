@@ -32,6 +32,10 @@ for c in picked:
     (out, err) = proc.communicate(crasher)
     signal.alarm(0)
 
+    if out != "canary ok":
+        print "didn't pass canary, sorry"
+        exit(-1)
+
     if proc.returncode != -signal.SIGSEGV:
         print "didn't segfault, sorry"
         exit(-1)
