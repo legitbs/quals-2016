@@ -125,7 +125,7 @@ EOF
   name
 end.sort
 
-buildall.puts "cp tmp/gen/pov/#{names.first}.xml tmp/gen/dist/"
+
 
 buildall.close
 File.chmod(0500, 'tmp/gen/buildall.sh')
