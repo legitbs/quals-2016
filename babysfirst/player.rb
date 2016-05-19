@@ -7,7 +7,7 @@ class Player < Minitest::Test
     sleep 1 if ENV.fetch('GO_SLOW')
     @host = ENV.fetch('HOST', 'localhost')
     @port = ENV.fetch('PORT', 21000)
-    @flag = ENV.fetch('FLAG', "baby's first crs cirvyudta")
+    @flag = ENV.fetch('FLAG', "I believe ghosts are like dogs and they just sort of do things arbitrarily Fogatlea")
   end
 
   def test_runs_correctly
@@ -15,21 +15,19 @@ class Player < Minitest::Test
     sock.setsockopt(Socket::IPPROTO_TCP, Socket::TCP_NODELAY, true)
     assert_equal "send your crash string as base64, followed by a newline", sock.gets.strip
 
-    10.times do
-      binary_name = sock.gets.strip
-      puts binary_name
+    binary_name = sock.gets.strip
+    puts binary_name
 
-      refute_equal "didn't pass canary, sorry", binary_name
-      refute_equal "didn't segfault, sorry", binary_name
+    refute_equal "didn't pass canary, sorry", binary_name
+    refute_equal "didn't segfault, sorry", binary_name
 
-      assert_equal File.basename(binary_name), binary_name
-      crasher_path = File.join 'tmp/gen/raw', binary_name
-      assert File.exist? crasher_path
-      crasher = File.read crasher_path
-      encoded_crasher = Base64.strict_encode64 crasher
+    assert_equal File.basename(binary_name), binary_name
+    crasher_path = File.join('.', binary_name + '.raw')
+    assert File.exist? crasher_path
+    crasher = File.read crasher_path
+    encoded_crasher = Base64.strict_encode64 crasher
 
-      sock.puts encoded_crasher
-    end
+    sock.puts encoded_crasher
 
     puts flag_message = sock.gets.strip
 
@@ -49,7 +47,7 @@ class Player < Minitest::Test
     refute_equal "didn't segfault, sorry", binary_name
 
     assert_equal File.basename(binary_name), binary_name
-    crasher_path = File.join 'tmp/gen/raw', binary_name
+    crasher_path = File.join '.', binary_name
     assert File.exist? crasher_path
 
     crasher = 'A' * 1000
@@ -74,7 +72,7 @@ class Player < Minitest::Test
     refute_equal "didn't segfault, sorry", binary_name
 
     assert_equal File.basename(binary_name), binary_name
-    crasher_path = File.join 'tmp/gen/raw', binary_name
+    crasher_path = File.join '.', binary_name
     assert File.exist? crasher_path
 
     crasher = "hehe\n"
