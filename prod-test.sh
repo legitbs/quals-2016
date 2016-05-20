@@ -1,5 +1,7 @@
 #!/bin/bash
 
+pushd /thousand_cuts
+
 pushd babysfirst
 HOST=easy-prasky_335e35448b30ce7697fbb036cce45e34.quals.shallweplayaga.me PORT=10001 ruby player.rb
 popd
@@ -14,4 +16,6 @@ popd
 
 pushd scramble-stack
 HOST=1000_cuts_1bf4f5b0948106ad8102b7cb141182a2.quals.shallweplayaga.me PORT=11000 ruby player.rb
+popd
+
 popd
