@@ -60,4 +60,21 @@ The runner can be configured with several environment variables.
   default 5 seconds is probably way slow but what if shit gets slow in prod idk
 * `FLAG` each level defaults to a different flag, easily configurable.
 
+## Testing in Production
+
+`prod-test.sh` runs tests for all four levels, and is configured for 2016 quals
+server names and ports.
+
+You can run it with Docker!
+
+```sh
+docker build -t thousand_cuts:test .
+docker run -it thousand_cuts:test
+```
+
+Each level has a `player.rb` script that runs three tests: too much input, input
+that doesn't trigger a crash, and the full success flow for each service. This
+script requires Ruby and Minitest, and the built up `tmp/gen/raw/*` directories
+full of valid crash strings.
+
 ## <3 vito
