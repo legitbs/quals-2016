@@ -4,7 +4,7 @@ require 'minitest/autorun'
 
 class Player < Minitest::Test
   def setup
-    sleep 1 if ENV.fetch('GO_SLOW')
+    sleep 1 if ENV.fetch('GO_SLOW', false)
     @host = ENV.fetch('HOST', 'localhost')
     @port = ENV.fetch('PORT', 21000)
     @flag = ENV.fetch('FLAG', "I believe ghosts are like dogs and they just sort of do things arbitrarily Fogatlea")
