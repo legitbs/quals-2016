@@ -1,0 +1,1 @@
+Must be compiled with gcc 4.7.3 (using Mint 15) otherwise register usage in NewString causes trouble when returning from AddString

@@ -1,0 +1,4 @@
+#!/bin/sh
+
+strip -s badger
+strip --remove-section .note --remove-section .comment --remove-section .note.gnu.build-id badger

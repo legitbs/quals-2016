@@ -1,0 +1,38 @@
+---
+nodes:
+- name: start
+- name: menu
+- name: doFlashcards
+- name: doQuiz
+- name: doMaint
+- name: maintMenu
+- name: backToMain
+- name: addWords
+- name: editWord
+- name: deleteWords
+- name: listWords
+- name: exit
+
+edges:
+- start: menu
+- menu: doFlashcards
+- doFlashcards: menu
+- menu: doQuiz
+- doQuiz: menu
+- menu: doMaint
+- doMaint: maintMenu
+- maintMenu: addWords
+- addWords: maintMenu
+- maintMenu: editWord
+- editWord: maintMenu
+- maintMenu: deleteWords
+- deleteWords: maintMenu
+- maintMenu: listWords
+- listWords: maintMenu
+- maintMenu: backToMain
+- backToMain: menu
+- menu: exit
+  weight: .1
+
+
+

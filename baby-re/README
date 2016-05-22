@@ -1,0 +1,6 @@
+baby-re is (obviously) a RE challenge.  It contains a basic set of linear equations.  The challenge is to RE out the coefficients for each equation's terms.  Then, you can either solve the set manually or search the Internets for a site like http://equationsolver.intemodino.com/en/solve-systems-of-equations.html.  The equation unknowns are the bytes of the flag.  If you enter the correct values into the program, it will check them against the equations and will print out the flag (aka the bytes you entered) if they are correct.  The size of the linear system is based on the length of the flag.  For example, a flag with 10 characters, will have a linear system with 10 equations and 10 unknowns.
+
+To make changing the flag easier (which would result in new coefficients for the linear system), there's a create-baby-re executable which prompts for the desired flag string and outputs the C program for baby-re.c.  Just dump that output into babe-re.c and run make.
+
+There are also some really basic anti-reversing bytes mixed into the program just to be annoying.
+

@@ -1,0 +1,6 @@
+gcc 4.8.4 was compiled with ../gcc-4.8.4/configure --disable-libssp --disable-threads --prefix=/home/lightning/gcc-custom CFLAGS="-fPIC -fpic" CXXFLAGS="-fPIC -fpic" --enable-languages=c,c++ --disable-bootstrap --disable-nls
+
+gcc 4.8.4 was installed
+The two patches were applied to uClibc and uClibc++ appropriately
+The custom build of libsupc++.a was copied to the src/abi/libsupc folder of uClibc++ to allow for a fPIC version to be available
+Final compiled libaries and custom gcc used to compile Glados to allow for moving the stacic binary without hard locations being set by the compiler

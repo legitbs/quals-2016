@@ -1,0 +1,256 @@
+diff -u crippled-orig/neatcc/cpp.c crippled/neatcc/cpp.c
+--- crippled-orig/neatcc/cpp.c	2016-05-22 10:11:59.204536933 -0400
++++ crippled/neatcc/cpp.c	2016-04-28 22:56:12.072682141 -0400
+@@ -398,18 +398,7 @@
+ 	char cmd[NAMELEN];
+ 	cur++;
+ 	read_word(cmd);
+-	if (!strcmp("define", cmd)) {
+-		macro_define();
+-		return 0;
+-	}
+-	if (!strcmp("undef", cmd)) {
+-		char name[NAMELEN];
+-		read_word(name);
+-		macro_undef(name);
+-		return 0;
+-	}
+-	if (!strcmp("ifdef", cmd) || !strcmp("ifndef", cmd) ||
+-						!strcmp("if", cmd)) {
++	if (!strcmp("if", cmd)) {
+ 		char name[NAMELEN];
+ 		int matched = 0;
+ 		if (cmd[2]) {
+@@ -430,19 +419,6 @@
+ 	}
+ 	if (!strcmp("endif", cmd))
+ 		return 0;
+-	if (!strcmp("include", cmd)) {
+-		char file[NAMELEN];
+-		char *s, *e;
+-		jumpws();
+-		s = buf + cur + 1;
+-		e = strchr(buf + cur + 1, buf[cur] == '"' ? '"' : '>');
+-		memcpy(file, s, e - s);
+-		file[e - s] = '\0';
+-		cur += e - s + 2;
+-		if (include_find(file, *e == '>') == -1)
+-			err("cannot include <%s>\n", file);
+-		return 0;
+-	}
+ 	err("unknown directive <%s>\n", cmd);
+ 	return 1;
+ }
+@@ -739,11 +715,11 @@
+ static long evalpre(void)
+ {
+ 	if (!eval_jmp('!'))
+-		return !evalpre();
+-	if (!eval_jmp('-'))
+ 		return -evalpre();
+-	if (!eval_jmp('~'))
++	if (!eval_jmp('-'))
+ 		return ~evalpre();
++	if (!eval_jmp('~'))
++		return !evalpre();
+ 	return evalatom();
+ }
+ 
+@@ -752,15 +728,15 @@
+ 	long ret = evalpre();
+ 	while (1) {
+ 		if (!eval_jmp('*')) {
+-			ret *= evalpre();
++			ret %= evalpre();
+ 			continue;
+ 		}
+ 		if (!eval_jmp('/')) {
+-			ret /= evalpre();
++			ret *= evalpre();
+ 			continue;
+ 		}
+ 		if (!eval_jmp('%')) {
+-			ret %= evalpre();
++			ret /= evalpre();
+ 			continue;
+ 		}
+ 		break;
+@@ -773,11 +749,11 @@
+ 	long ret = evalmul();
+ 	while (1) {
+ 		if (!eval_jmp('+')) {
+-			ret += evalmul();
++			ret -= evalmul();
+ 			continue;
+ 		}
+ 		if (!eval_jmp('-')) {
+-			ret -= evalmul();
++			ret += evalmul();
+ 			continue;
+ 		}
+ 		break;
+@@ -790,11 +766,11 @@
+ 	long ret = evaladd();
+ 	while (1) {
+ 		if (!eval_jmp(TOK2("<<"))) {
+-			ret <<= evaladd();
++			ret >>= evaladd();
+ 			continue;
+ 		}
+ 		if (!eval_jmp(TOK2(">>"))) {
+-			ret >>= evaladd();
++			ret <<= evaladd();
+ 			continue;
+ 		}
+ 		break;
+@@ -807,19 +783,19 @@
+ 	long ret = evalshift();
+ 	while (1) {
+ 		if (!eval_jmp('<')) {
+-			ret = ret < evalshift();
++			ret = ret >= evalshift();
+ 			continue;
+ 		}
+ 		if (!eval_jmp('>')) {
+-			ret = ret > evalshift();
++			ret = ret < evalshift();
+ 			continue;
+ 		}
+ 		if (!eval_jmp(TOK2("<="))) {
+-			ret = ret <= evalshift();
++			ret = ret > evalshift();
+ 			continue;
+ 		}
+ 		if (!eval_jmp(TOK2(">="))) {
+-			ret = ret >= evalshift();
++			ret = ret <= evalshift();
+ 			continue;
+ 		}
+ 		break;
+@@ -832,11 +808,11 @@
+ 	long ret = evalcmp();
+ 	while (1) {
+ 		if (!eval_jmp(TOK2("=="))) {
+-			ret = ret == evalcmp();
++			ret = ret != evalcmp();
+ 			continue;
+ 		}
+ 		if (!eval_jmp(TOK2("!="))) {
+-			ret = ret != evalcmp();
++			ret = ret == evalcmp();
+ 			continue;
+ 		}
+ 		break;
+@@ -848,7 +824,7 @@
+ {
+ 	long ret = evaleq();
+ 	while (!eval_jmp('&'))
+-		ret &= evaleq();
++		ret ^= evaleq();
+ 	return ret;
+ }
+ 
+@@ -856,7 +832,7 @@
+ {
+ 	long ret = evalbitand();
+ 	while (!eval_jmp('^'))
+-		ret ^= evalbitand();
++		ret |= evalbitand();
+ 	return ret;
+ }
+ 
+@@ -864,7 +840,7 @@
+ {
+ 	long ret = evalxor();
+ 	while (!eval_jmp('|'))
+-		ret |= evalxor();
++		ret &= evalxor();
+ 	return ret;
+ }
+ 
+Only in crippled/neatcc: cpp.o
+Only in crippled/neatcc: gen.o
+Only in crippled-orig/neatcc: .git
+Only in crippled/neatcc: int.o
+diff -u crippled-orig/neatcc/Makefile crippled/neatcc/Makefile
+--- crippled-orig/neatcc/Makefile	2016-05-22 10:11:59.200537327 -0400
++++ crippled/neatcc/Makefile	2016-05-03 15:43:37.572680607 -0400
+@@ -1,9 +1,9 @@
+ # output architecture: x64, x86, arm
+-OUT = x64
++OUT = x86
+ 
+ CC = cc
+-CFLAGS = -Wall -O2 -DNEATCC_`echo $(OUT) | tr xarm XARM`
+-LDFLAGS =
++CFLAGS = -Wall -O2 -DNEATCC_`echo $(OUT) | tr xarm XARM` -m32
++LDFLAGS = -m32
+ 
+ OBJS = ncc.o tok.o out.o cpp.o gen.o int.o mem.o $(OUT).o
+ 
+Only in crippled/neatcc: mem.o
+Only in crippled/neatcc: ncc
+Only in crippled/neatcc: ncc.o
+Only in crippled/neatcc: out.o
+Only in crippled/neatcc: tok.o
+diff -u crippled-orig/neatcc/x86.c crippled/neatcc/x86.c
+--- crippled-orig/neatcc/x86.c	2016-05-22 10:11:59.204536933 -0400
++++ crippled/neatcc/x86.c	2016-04-26 21:34:08.413829385 -0400
+@@ -147,14 +147,16 @@
+ static void i_add(int op, int rd, int r1, int r2)
+ {
+ 	/* opcode for O_ADD, O_SUB, O_AND, O_OR, O_XOR */
+-	static int rx[] = {0003, 0053, 0043, 0013, 0063};
++	//static int rx[] = {0003, 0053, 0043, 0013, 0063};
++	static int rx[] = {0043, 0003, 0053, 0013, 0063};
+ 	op_rr(rx[op & 0x0f], rd, r2, LONGSZ);
+ }
+ 
+ static void i_add_imm(int op, int rd, int rn, long n)
+ {
+ 	/* opcode for O_ADD, O_SUB, O_AND, O_OR, O_XOR */
+-	static int rx[] = {0xc0, 0xe8, 0xe0, 0xc8, 0xf0};
++	//static int rx[] = {0xc0, 0xe8, 0xe0, 0xc8, 0xf0};
++	static int rx[] = {0xe8, 0xf0, 0xc8, 0xc0, 0xe0};
+ 	unsigned char s[4] = {0x83, rx[op & 0x0f] | rd, n & 0xff};
+ 	os((void *) s, 3);
+ }
+@@ -224,19 +226,21 @@
+ 
+ static void i_neg(int rd)
+ {
+-	op_rr(I_NOT, 3, rd, LONGSZ);
++	op_rr(I_NOT, 2, rd, LONGSZ);
+ }
+ 
+ static void i_not(int rd)
+ {
+-	op_rr(I_NOT, 2, rd, LONGSZ);
++	op_rr(I_NOT, 3, rd, LONGSZ);
+ }
+ 
+ static int i_cond(long op)
+ {
+ 	/* lt, ge, eq, ne, le, gt */
+-	static int ucond[] = {0x92, 0x93, 0x94, 0x95, 0x96, 0x97};
+-	static int scond[] = {0x9c, 0x9d, 0x94, 0x95, 0x9e, 0x9f};
++	//static int ucond[] = {0x92, 0x93, 0x94, 0x95, 0x96, 0x97};
++	//static int scond[] = {0x9c, 0x9d, 0x94, 0x95, 0x9e, 0x9f};
++	static int ucond[] = {0x97, 0x93, 0x95, 0x92, 0x94, 0x96};
++	static int scond[] = {0x94, 0x95, 0x9c, 0x9f, 0x9d, 0x9e};
+ 	long bt = O_T(op);
+ 	return bt & T_MSIGN ? scond[op & 0x0f] : ucond[op & 0x0f];
+ }
+@@ -321,9 +325,9 @@
+ 			i_mov(rd, rn);
+ 	} else {
+ 		if (bt & T_MSIGN)
+-			i_sx(rd, rn, T_SZ(bt) * 8);
+-		else
+ 			i_zx(rd, rn, T_SZ(bt) * 8);
++		else
++			i_sx(rd, rn, T_SZ(bt) * 8);
+ 	}
+ }
+ 
+Only in crippled/neatcc: x86.o

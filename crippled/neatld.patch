@@ -1,0 +1,160 @@
+Only in crippled-orig/ld: .git
+diff -u crippled-orig/ld/Makefile crippled/neatld/Makefile
+--- crippled-orig/ld/Makefile	2016-05-22 10:11:48.453682876 -0400
++++ crippled/neatld/Makefile	2016-04-26 22:07:17.896160599 -0400
+@@ -1,6 +1,6 @@
+ CC = cc
+-CFLAGS = -Wall -O2
+-LDFLAGS =
++CFLAGS = -Wall -O2 -m32 -Wno-unused-result
++LDFLAGS = -m32
+ 
+ all: nld
+ .c.o:
+Only in crippled/neatld: nld
+diff -u crippled-orig/ld/nld.c crippled/neatld/nld.c
+--- crippled-orig/ld/nld.c	2016-05-22 10:11:48.453682876 -0400
++++ crippled/neatld/nld.c	2016-04-27 22:32:19.440605745 -0400
+@@ -193,6 +193,50 @@
+ 	return 1;
+ }
+ 
++static void obj_check_for_dupes(struct outelf *oe, char *mem)
++{
++	int i;
++	int x;
++
++	Elf_Ehdr *ehdr;
++	Elf_Shdr *shdr;
++	Elf_Sym *syms;
++	int nsyms;
++	char *symstr;
++	struct obj *symobj;
++	Elf_Sym *sym;
++
++	ehdr = (void *) mem;
++	shdr = (void *) (mem + ehdr->e_shoff);
++	for (i = 0; i < ehdr->e_shnum; i++)
++	{
++		if (shdr[i].sh_type != SHT_SYMTAB)
++			continue;
++		nsyms = shdr[i].sh_size / sizeof(*syms);
++
++		symstr = mem + shdr[shdr[i].sh_link].sh_offset;
++		syms = (void *) (mem + shdr[i].sh_offset);
++		for(x = 0; x < nsyms; x++)
++		{
++			//if symbol is a function and defined
++			if((ELF_ST_TYPE(syms[x].st_info) == STT_FUNC) && (syms[x].st_shndx != SHN_UNDEF))
++			{
++				//if we can find a copy and the copy isn't undefined then report duplicate
++				if(outelf_find(oe, symstr + syms[x].st_name, &symobj, &sym) == 0)
++				{
++					if((ELF_ST_TYPE(sym->st_info) == STT_FUNC) && (sym->st_shndx != SHN_UNDEF))
++					{
++						fprintf(stderr, "Duplicate symbol %s found\n", symstr + syms[x].st_name);
++						exit(1);
++					}
++				}
++			}
++		}
++	}
++
++	return;
++}
++
+ static unsigned long bss_addr(struct outelf *oe, Elf_Sym *sym)
+ {
+ 	int i;
+@@ -466,6 +510,9 @@
+ 	e_flags = ehdr->e_flags;
+ 	if (oe->nobjs >= MAXOBJS)
+ 		die("ld: MAXOBJS reached!");
++
++	obj_check_for_dupes(oe, mem);
++
+ 	obj = &oe->objs[oe->nobjs++];
+ 	obj_init(obj, mem);
+ 	for (i = 0; i < ehdr->e_shnum; i++) {
+@@ -495,7 +542,7 @@
+ 		len += sec->o_shdr->sh_size;
+ 	}
+ 	phdr->p_type = PT_LOAD;
+-	phdr->p_flags = PF_R | PF_W | PF_X;
++	phdr->p_flags = PF_R | PF_X;
+ 	phdr->p_vaddr = vaddr;
+ 	phdr->p_paddr = laddr;
+ 	phdr->p_offset = faddr;
+@@ -520,7 +567,7 @@
+ 	}
+ 	len = ALIGN(len, 4);
+ 	phdr->p_type = PT_LOAD;
+-	phdr->p_flags = PF_R | PF_W | PF_X;
++	phdr->p_flags = PF_R | PF_W;
+ 	phdr->p_align = PAGE_SIZE;
+ 	phdr->p_vaddr = vaddr;
+ 	phdr->p_paddr = laddr;
+@@ -555,10 +602,25 @@
+ 	return len;
+ }
+ 
++static int link_gnu_stack(struct outelf *oe, Elf_Phdr *phdr,
++			unsigned long faddr, unsigned long vaddr, int len)
++{
++	phdr->p_type = PT_GNU_STACK;
++	phdr->p_flags = PF_R | PF_W;
++	phdr->p_vaddr = 0;
++	phdr->p_paddr = 0;
++	phdr->p_offset = 0;
++	phdr->p_filesz = 0;
++	phdr->p_memsz = 0;
++	phdr->p_align = PAGE_SIZE;
++	return len;
++}
++
+ static void outelf_link(struct outelf *oe)
+ {
+ 	unsigned long faddr, vaddr, laddr;
+ 	int len;
++
+ 	len = ALIGN(sizeof(oe->ehdr) + MAXPHDRS * sizeof(oe->phdr[0]), secalign);
+ 	faddr = len & ~PAGE_MASK;
+ 	vaddr = sec_vaddr[I_CS];
+@@ -578,7 +640,12 @@
+ 	oe->bss_vaddr = vaddr;
+ 	len = link_bss(oe, &oe->phdr[2], faddr, vaddr, oe->bss_len);
+ 
+-	oe->nph = 3;
++	len = ALIGN(faddr + len, secalign) - faddr;
++	faddr += len;
++	vaddr = sec_set[I_BSS] ? sec_vaddr[I_BSS] | (faddr & PAGE_MASK) : vaddr + len;
++	len = link_gnu_stack(oe, &oe->phdr[3], faddr, vaddr, oe->bss_len);
++
++	oe->nph = 4;
+ 	outelf_reloc(oe);
+ 	oe->shdr_faddr = faddr;
+ }
+@@ -795,6 +862,22 @@
+ 			continue;
+ 		}
+ 	}
++
++	fd = open("/dev/urandom", O_RDONLY);
++	read(fd, &sec_vaddr[I_CS], sizeof(unsigned long));
++	close(fd);
++
++	//pick a random memory location
++	sec_vaddr[I_CS] = sec_vaddr[I_CS] & 0xfffff000;
++
++	if(((sec_vaddr[I_CS] >> 24) == 0xf7) || ((sec_vaddr[I_CS] >> 24) == 0xff))
++	{
++		//take 1 away so we don't sit on vdso or stack
++		sec_vaddr[I_CS] -= 0x01000000;
++	}
++
++	sec_laddr[I_CS] = sec_vaddr[I_CS];
++
+ 	outelf_link(&oe);
+ 	fd = open(out, O_WRONLY | O_TRUNC | O_CREAT, 0700);
+ 	outelf_write(&oe, fd);
+Only in crippled/neatld: nld.o

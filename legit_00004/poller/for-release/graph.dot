@@ -1,0 +1,32 @@
+digraph G {
+    addWords [label="addWords"];
+    listWords [label="listWords"];
+    backToMain [label="backToMain"];
+    maintMenu [label="maintMenu"];
+    doMaint [label="doMaint"];
+    editWord [label="editWord"];
+    doQuiz [label="doQuiz"];
+    start [label="start", shape=box];
+    exit [label="exit", shape=triangle];
+    menu [label="menu"];
+    deleteWords [label="deleteWords"];
+    doFlashcards [label="doFlashcards"];
+    addWords -> maintMenu;
+    listWords -> maintMenu;
+    backToMain -> menu;
+    maintMenu -> addWords;
+    maintMenu -> deleteWords;
+    maintMenu -> listWords;
+    maintMenu -> editWord;
+    maintMenu -> backToMain;
+    doMaint -> maintMenu;
+    editWord -> maintMenu;
+    doQuiz -> menu;
+    start -> menu;
+    menu -> doQuiz;
+    menu -> exit [label="0.1x"];
+    menu -> doMaint;
+    menu -> doFlashcards;
+    deleteWords -> maintMenu;
+    doFlashcards -> menu;
+}

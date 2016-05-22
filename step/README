@@ -1,0 +1,11 @@
+step is a RE challenge with self-modifying code.  Functions in the challenge are xor "encrypted" in two different ways.  Some inital setup functions are encrypted using a 4-byte pass phrase (key1) and the rest of the fucntions have the first byte of each instruction encrypted with the least-significant byte of the address of that instruction.  The trap flag and a handler function are used to decrypt the single byte encryption just before that particular instruction is executed.  And, the trap handler also re-encrypts the instruction immediately after it's done executing.
+
+The challenge first prompts for "Key1" which is the 4-byte string used to decrypt the setup and trap handler functions.  Then, it prompts for a 32-byte "Key2".  The challenge then performs a per-byte permutation of the string's bits and compares the result with a hard-coded string.  If they match, it prints the flag.
+
+So, the goal of this challenge is to RE the full-function decryption routine to obtain the trap handler, RE the trap handler to understand the single-byte decryption, and then RE the single-byte encrypted functions to obtain the function which performs the string permutation and comparison.  With the hard-coded string and an understanding of the permutation, they can determine what 32-bytes should be sent for the program to print the flag. 
+
+Current solution:
+echo -e "1337\n\x21\x66\xe2\xe0\xf1\xe2\x46\x40\xe6\xe0\xe5\x40\xa4\x40\x64\xe0\x73\xe2\x40\x63\x64\xe2\x40\x72\x66\xe0\xf2\x40\x76\xf6\xf3\n" | ./step
+
+
+'scramble' and 'enc' programs are just helpers to create the 32-byte permuted string and to encrypt the compiled binary.  'enc' is pretty ugly...just parsing an objdump output, but hey, it works.
