@@ -1,0 +1,35 @@
+glados
+
+requires common function for extra menu text
+
+types of modules/cores:
++	memory info - gives information about itself including where it is in memory
+			gives bits of program info
+				number of modules loaded
++	raw data storage and retrieval - will allow allocating a specific size amount of memory and storing data in said location
+					another module will have a pointer that isn't set on init that if free'd will cause bug
++	cave johnson core
+		cave johnson quotes - stored in a data array core
+		menu for changing and interacting with cores
+		attempts to link modules/portals (define this)
+		likes to try random combinations of portals/modules with random data, probably a bad thing
++	glados core
+		glados quotes - stored in a data array core
+		menu for changing cores
+		decides after x interactions or random (lower chance than cave johnson) to just terminate connection
++	random number generator core
++	controlled buffer overflow test core
+		can't be uncontrolled as even the stack cookie wouldn't be good enough with data array core memory leaks
+		could possibly be uncontrolled if 2nd cookie forced in place and adapted off of rdtsc or similar (something unguessable)
+		but this results in brute forcing
++	data array core
+		an array of data to be accessible
+		cave johnson quotes stored in such a core
+		allow up to 8 bytes per entry to be stored, does not do actual memory handling
+		allow bug for improper indexing when reading ( < 0 indexing). Should allow discovery of binary location
+
+modules are stored in a linked list, no bugs. maybe red herring of not resetting forward pointer properly but never used?
+	see Khazad linked list bug for example
+
+
+

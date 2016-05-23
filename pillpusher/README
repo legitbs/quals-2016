@@ -1,0 +1,40 @@
+Pushing Pills
+
+Pharmacy
+
+Drugs
+ - Name
+ - Recommended Dosage
+ - Side Effects
+ - Interactions
+ - Treatment for...
+
+Pharmacy
+ - Name
+ - Available Drugs
+ - Pharmacists
+
+Pharmacists
+ - Name
+ - Other data
+
+Patient
+ - Name
+ - Symptoms
+ - Prescriptions
+
+Prescription
+ - Pills
+
+Add a Drug
+Add a Random Drug
+List Drugs
+Modify Drug
+
+
+Create a Pharmacy
+Create a random Pharmacy
+List Pharmacies
+Modify Pharmacy
+Remove a Pharmacy
+

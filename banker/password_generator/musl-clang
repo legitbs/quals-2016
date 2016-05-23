@@ -1,0 +1,82 @@
+#!/bin/sh
+#
+# musl-clang: A clang wrapper for musl C library.
+#             Supports static linking. (-static)
+#
+# WARNING: This is not a perfect drop-in replacement
+#
+# See LICENSE file for copyright and license details.
+#
+
+PREFIX=${MUSL_PREFIX:-"/usr/local/musl"}
+if [ ! -d "${PREFIX}" ]; then
+	echo "invalid prefix: ${PREFIX}"
+	return 1
+fi
+
+CPP=no
+case "$0" in
+	*++) CPP=yes ;;
+esac
+
+if [ "${CPP}" = "yes" ]; then
+	CLANG=${REALCLANGPP:-"clang-3.5++"}
+else
+	CLANG=${REALCLANG:-"clang-3.5"}
+fi
+
+hasNo() {
+	pat="$1"
+	shift 1
+
+	for e in "$@"; do
+		if [ "$e" = "${pat}" ]; then
+			return 1
+		fi
+	done
+	return 0
+}
+
+ARGS="-nostdinc -fno-exceptions -fno-rtti -static"
+TAIL=""
+
+if hasNo '-nostdinc' "$@"; then
+	ARGS="${ARGS} -isystem ${PREFIX}/include"
+fi
+
+if \
+	hasNo '-c' "$@" && \
+	hasNo '-S' "$@" && \
+	hasNo '-E' "$@"
+then
+	ARGS="${ARGS} -nostdlib"
+	ARGS="${ARGS} -Wl,-dynamic-linker=${PREFIX}/lib/libc.so"
+	ARGS="${ARGS} -L${PREFIX}/lib"
+	#ARGS="${ARGS} -Wl,-rpath=${PREFIX}/lib"
+
+	if hasNo '-nostartfiles' "$@" && \
+	   hasNo '-nostdlib' "$@" && \
+	   hasNo '-nodefaultlibs' "$@"
+	then
+		ARGS="${ARGS} ${PREFIX}/lib/crt1.o"
+		ARGS="${ARGS} ${PREFIX}/lib/crti.o"
+
+		TAIL="${TAIL} ${PREFIX}/lib/crtn.o"
+	fi
+
+	if hasNo '-nostdlib' "$@" && \
+	   hasNo '-nodefaultlibs' "$@"
+	then
+		if [ "${CPP}" = "yes" ]; then
+			TAIL="${TAIL} -lc++"
+			TAIL="${TAIL} -lunwind"
+			TAIL="${TAIL} -lm"
+		fi
+		TAIL="${TAIL} -lc"
+		#TAIL="${TAIL} -Wl,-Bstatic -lcompiler_rt"
+	fi
+fi
+
+#echo "# $0" "$@" >&2
+#set -x
+exec ${CLANG} ${ARGS} "$@" ${TAIL}

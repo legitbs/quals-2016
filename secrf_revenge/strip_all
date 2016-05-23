@@ -1,0 +1,4 @@
+#!/bin/sh
+
+strip -s secrf
+strip --remove-section .note --remove-section .comment --remove-section .note.gnu.build-id secrf
